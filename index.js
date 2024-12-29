@@ -3,19 +3,15 @@ dotenv.config();
 import apmNode from 'elastic-apm-node';
 import express from 'express';
 import logger from './logger.js';
-apmNode
-	.start({
-		serviceName: 'app-server',
-		serverUrl: process.env.APM_SERVER_HOST,
-		environment: 'development',
-		captureBody: 'all',
-		captureHeaders: true,
-		captureExceptions: true,
-		secretToken: process.env.APM_SECRET_TOKEN, // Optional, set only if you configured a secret token in APM Server
-	})
-	.captureError((error) => {
-		console.error(error);
-	});
+apmNode.start({
+	serviceName: 'app-server',
+	serverUrl: process.env.APM_SERVER_HOST,
+	environment: 'development',
+	captureBody: 'all',
+	captureHeaders: true,
+	captureExceptions: true,
+	secretToken: process.env.APM_SECRET_TOKEN, // Optional, set only if you configured a secret token in APM Server
+});
 
 const app = express();
 const PORT = 3000;
@@ -35,8 +31,10 @@ app.get('/', (req, res) => {
 
 // Route to sample users data
 app.get('/users', async (req, res) => {
+	logger.info('Making api call to users.');
 	fetch('https://reqres.in/api/users?page=1', { method: 'GET' })
 		.then((apiResp) => {
+			logger.info('received users data from api');
 			apiResp
 				.json()
 				.then((jsonData) => {
