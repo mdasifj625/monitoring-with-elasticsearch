@@ -1,0 +1,61 @@
+services:
+    elasticsearch:
+        container_name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
+        restart: always
+        environment:
+            - discovery.type=single-node
+            - xpack.security.enabled=false
+        ports:
+            - '9200:9200'
+        volumes:
+            - elasticsearch_data:/usr/share/elasticsearch/data
+        networks:
+            - log_monitoring_network
+
+    apm-server:
+        container_name: apm_server
+        image: docker.elastic.co/apm/apm-server:8.17.0
+        restart: always
+        ports:
+            - '8200:8200'
+        environment:
+            - output.elasticsearch.hosts=["http://elasticsearch:9200"]
+            - apm-server.auth.secret_token=5f2a17f3b09a19a6e11ec9e1c4a6d4f1
+        networks:
+            - log_monitoring_network
+        depends_on:
+            - elasticsearch
+
+    kibana:
+        container_name: kibana
+        image: docker.elastic.co/kibana/kibana:8.17.0
+        restart: always
+        ports:
+            - '5601:5601'
+        environment:
+            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+        networks:
+            - log_monitoring_network
+        depends_on:
+            - elasticsearch
+
+    # Uncomment and configure Prometheus as needed.
+    # prometheus:
+    #     image: prom/prometheus:latest
+    #     restart: always
+    #     volumes:
+    #         - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    #     ports:
+    #         - '9090:9090'
+    #     networks:
+    #         - log_monitoring_network
+    #     depends_on:
+    #         - app-server
+
+volumes:
+    elasticsearch_data:
+
+networks:
+    log_monitoring_network:
+        driver: bridge

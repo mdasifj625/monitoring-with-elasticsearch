@@ -1,0 +1,21 @@
+{
+  "name": "kibana_setup",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "elastic-apm-node": "^4.8.0",
+    "express": "^4.21.1",
+    "pino": "^9.6.0",
+    "pino-elasticsearch": "^8.1.0",
+    "pino-pretty": "^13.0.0"
+  }
+}

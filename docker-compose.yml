@@ -1,0 +1,21 @@
+services:
+    app-server:
+        container_name: application_server
+        image: app-server:latest
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: always
+        ports:
+            - '3000:3000'
+        environment:
+            - APM_SERVER_HOST=http://apm-server:8200
+            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+            - APM_SECRET_TOKEN=5f2a17f3b09a19a6e11ec9e1c4a6d4f1
+            - NODE_ENV=development
+        networks:
+            - log_monitoring_network
+
+networks:
+    log_monitoring_network:
+        driver: bridge
