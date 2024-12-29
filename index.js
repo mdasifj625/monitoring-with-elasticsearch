@@ -1,8 +1,6 @@
+import apmNode from 'elastic-apm-node';
 import dotenv from 'dotenv';
 dotenv.config();
-import apmNode from 'elastic-apm-node';
-import express from 'express';
-import logger from './logger.js';
 apmNode.start({
 	serviceName: 'app-server',
 	serverUrl: process.env.APM_SERVER_HOST,
@@ -11,7 +9,11 @@ apmNode.start({
 	captureHeaders: true,
 	captureExceptions: true,
 	secretToken: process.env.APM_SECRET_TOKEN, // Optional, set only if you configured a secret token in APM Server
+	transactionSampleRate: 1.0, // Ensures 100% capture for testing
 });
+
+import express from 'express';
+import logger from './logger.js';
 
 const app = express();
 const PORT = 3000;
@@ -31,6 +33,32 @@ app.get('/', (req, res) => {
 
 // Route to sample users data
 app.get('/users', async (req, res) => {
+	const transaction = apmNode.startTransaction('GET /users', 'custom');
+	try {
+		const span = transaction?.startSpan(
+			'Fetching user data',
+			'external',
+			'http'
+		);
+		const apiResp = await fetch('https://reqres.in/api/users?page=1', {
+			method: 'GET',
+		});
+		span?.end();
+
+		const jsonData = await apiResp.json();
+		res.send(jsonData);
+
+		transaction?.setOutcome('success');
+	} catch (err) {
+		transaction?.setOutcome('failure');
+		apmNode.captureError(err);
+		res.send({ status: 'error', message: err.message });
+	} finally {
+		transaction?.end();
+	}
+});
+
+app.get('/users-list', async (req, res) => {
 	logger.info('Making api call to users.');
 	fetch('https://reqres.in/api/users?page=1', { method: 'GET' })
 		.then((apiResp) => {
